@@ -19,8 +19,8 @@ import (
 const (
 	statusSuccess          = 2
 	statusRedirectTemp     = 3
-	statusTemporaryFailure = 4
-	statusPermanentFailure = 5
+	statusClientError = 4
+	statusServerError = 5
 )
 
 var (
@@ -62,21 +62,21 @@ func handleConnection(conn io.ReadWriteCloser) {
 	// Check the size of the request buffer.
 	s := bufio.NewScanner(conn)
 	if len(s.Bytes()) > 1024 {
-		sendResponseHeader(conn, statusPermanentFailure, "Request exceeds maximum permitted length")
+		sendResponseHeader(conn, statusClientError, "Request exceeds maximum permitted length")
 		return
 	}
 
 	// Sanity check incoming request URL content.
 	if ok := s.Scan(); !ok {
-		sendResponseHeader(conn, statusPermanentFailure, "Request not valid")
+		sendResponseHeader(conn, statusClientError, "Request not valid")
 		return
 	}
 
 	// Parse incoming request URL.
 	request := s.Text()
-	path, contentLength, err := parseRequest(request)
+	path, _, err := parseRequest(request)
 	if err != nil {
-		sendResponseHeader(conn, statusPermanentFailure, "Bad request")
+		sendResponseHeader(conn, statusClientError, "Bad request")
 		return
 	}
 	log.Println("Handling request:", request)
@@ -123,7 +123,7 @@ func handleConnection(conn io.ReadWriteCloser) {
 		// 	return
 		// }
 		log.Println(err)
-		sendResponseHeader(conn, statusPermanentFailure, "Resource not found")
+		sendResponseHeader(conn, statusClientError, "Resource not found")
 		return
 	}
 	defer f.Close()
@@ -132,7 +132,7 @@ func handleConnection(conn io.ReadWriteCloser) {
 	content, err := ioutil.ReadAll(f)
 	if err != nil {
 		log.Println(err)
-		sendResponseHeader(conn, statusPermanentFailure, "Resource could not be read")
+		sendResponseHeader(conn, statusServerError, "Resource could not be read")
 		return
 	}
 
