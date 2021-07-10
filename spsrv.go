@@ -25,7 +25,7 @@ const (
 
 var (
 	hostname   = flag.String("h", "localhost", "hostname")
-	contentDir = flag.String("d", "/var/gemini", "content directory")
+	contentDir = flag.String("d", "/var/spartan", "content directory")
 	port       = flag.Int("p", 300, "port number")
 )
 
@@ -39,10 +39,10 @@ func main() {
 	}
 	log.Printf("Listening for connections on port: %d", *port)
 
-	serveGemini(listener)
+	serveSpartan(listener)
 }
 
-func serveGemini(listener net.Listener) {
+func serveSpartan(listener net.Listener) {
 	// serve forever
 	for {
 		// Accept incoming connection.
