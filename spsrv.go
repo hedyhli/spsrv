@@ -150,7 +150,6 @@ func handleConnection(conn io.ReadWriteCloser) {
 
 	log.Println("Closed connection")
 
-
 }
 
 func echoFunction(conn io.ReadWriteCloser, content string) {
