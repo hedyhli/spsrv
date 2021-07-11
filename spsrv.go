@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	statusSuccess      = 2
-	statusRedirectTemp = 3
-	statusClientError  = 4
-	statusServerError  = 5
+	statusSuccess     = 2
+	statusRedirect    = 3
+	statusClientError = 4
+	statusServerError = 5
 )
 
 var (
@@ -32,7 +32,6 @@ var (
 func main() {
 	flag.Parse()
 
-	// Create TSL over TCP session.
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("Unable to listen: %s", err)
@@ -42,20 +41,19 @@ func main() {
 	serveSpartan(listener)
 }
 
+// serveSpartan accepts connections and returns content
 func serveSpartan(listener net.Listener) {
-	// serve forever
 	for {
-		// Accept incoming connection.
 		conn, err := listener.Accept()
 		if err != nil {
 			continue
 		}
 		log.Println("Accepted connection")
-
 		go handleConnection(conn)
 	}
 }
 
+// handleConnection handles a request and does the reponse
 func handleConnection(conn io.ReadWriteCloser) {
 	defer conn.Close()
 
@@ -82,80 +80,70 @@ func handleConnection(conn io.ReadWriteCloser) {
 	log.Println("Handling request:", request)
 
 	// Time to fetch the files!
-	// If the URL ends with a '/' character, assume that the user wants the index.gmi
-	// file in the corresponding directory.
-	var reqPath string
+	serveFile(conn, path)
+	log.Println("Closed connection")
+}
+
+// serveFile serves opens the requested path and returns the file content
+func serveFile(conn io.ReadWriteCloser, path string) {
+	// default index file for a directory is index.gmi
 	if strings.HasSuffix(path, "/") || path == "" {
-		reqPath = filepath.Join(path, "index.gmi")
-	} else {
-		reqPath = path
+		path = filepath.Join(path, "index.gmi")
 	}
-	cleanPath := filepath.Clean(reqPath)
+	cleanPath := filepath.Clean(path)
 
 	// If the content directory is not specified as an absolute path, make it absolute.
-	var workDir string
+	prefixDir := ""
 	var rootDir http.Dir
 	if !strings.HasPrefix(*contentDir, "/") {
-		workDir, _ = os.Getwd()
-		// Use this function to avoid directory traversal type attacks.
-		rootDir = http.Dir(workDir + strings.Replace(*contentDir, ".", "", -1))
-	} else {
-		rootDir = http.Dir(strings.Replace(*contentDir, ".", "", -1))
+		prefixDir, _ = os.Getwd()
 	}
+	// Avoid directory traversal type attacks.
+	rootDir = http.Dir(prefixDir + strings.Replace(*contentDir, ".", "", -1))
 
 	// Open the requested resource.
-	log.Printf("Path: %s", cleanPath)
+	log.Printf("Fetching: %s", cleanPath)
 	f, err := rootDir.Open(cleanPath)
 	if err != nil {
-		// Guess what?? there's an echo handler for this static file server!!
-		// Lol cause why not :)
-		// once I add configs I'll have an option to disable this
-		// this only works if there isn't a file named "echo" in the directory
-		// (still wondering where in the world I should put the contentLength check)
-		// if contentLength > 0 {
-		// 	if ok := s.Scan(); !ok {
-		// 		sendResponseHeader(conn, statusPermanentFailure, "Unable to read input content")
-		// 		return
-		// 	}
-		// 	log.Println("Handling /echo request with content length", contentLength)
-		// 	content := s.Text()
-		// 	echoFunction(conn, content)
-		// 	return
-		// }
 		log.Println(err)
-		sendResponseHeader(conn, statusClientError, "Resource not found")
+		sendResponseHeader(conn, statusClientError, "Not found")
 		return
 	}
 	defer f.Close()
 
-	// Read the contents of the file.
+	// Read da file
 	content, err := ioutil.ReadAll(f)
 	if err != nil {
+		// /folder to /folder/ redirect
+		// I wish I could check if err is a "path/to/dir" is a directory error
+		// but I couldn't figure out how, so this check below is the best I
+		// can come up with I guess
+		if _, err := os.Stat(filepath.Join(fmt.Sprint(rootDir), cleanPath+"/")); !os.IsNotExist(err) {
+			log.Println("Redirecting", cleanPath, "to", cleanPath+"/")
+			sendResponseHeader(conn, statusRedirect, cleanPath+"/")
+			return
+		}
 		log.Println(err)
 		sendResponseHeader(conn, statusServerError, "Resource could not be read")
 		return
 	}
 
-	// Determine MIME type.
+	// MIME
 	meta := http.DetectContentType(content)
 	if strings.HasSuffix(cleanPath, ".gmi") {
-		meta = "text/gemini; lang=en; charset=utf-8"
+		meta = "text/gemini; lang=en; charset=utf-8" // TODO: configure custom meta string
 	}
 
 	log.Println("Writing response header")
 	sendResponseHeader(conn, statusSuccess, meta)
-
 	log.Println("Writing content")
 	sendResponseContent(conn, content)
-
-	log.Println("Closed connection")
-
 }
 
-func echoFunction(conn io.ReadWriteCloser, content string) {
-	sendResponseHeader(conn, statusSuccess, "text/plain")
-	sendResponseContent(conn, []byte(content))
-}
+// func echoFunction(conn io.ReadWriteCloser, content string) {
+// 	sendResponseHeader(conn, statusSuccess, "text/plain")
+// 	sendResponseContent(conn, []byte(content))
+// }
 
 func sendResponseHeader(conn io.ReadWriteCloser, statusCode int, meta string) {
 	header := fmt.Sprintf("%d %s\r\n", statusCode, meta)

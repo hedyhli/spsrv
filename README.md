@@ -2,6 +2,13 @@
 WIP!
 
 ## todo
+- [x] /folder to /folder/ redirects
+- [ ] directory listing
 - [ ] ~user directories
-- [ ] refactor working dir part
-- [ ] /echo
+- [x] refactor working dir part
+- [ ] config
+  - [ ] status meta
+  - [ ] user homedir
+  - [ ] hostname, port
+  - [ ] public dir
+- [ ] /echo /guestbook (configurable)
