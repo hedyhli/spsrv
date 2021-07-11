@@ -36,6 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to listen: %s", err)
 	}
+	log.Println("✨ You are now running on spsrv ✨")
 	log.Printf("Listening for connections on port: %d", *port)
 
 	serveSpartan(listener)
