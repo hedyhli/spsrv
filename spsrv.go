@@ -85,10 +85,11 @@ func handleConnection(conn io.ReadWriteCloser) {
 }
 
 // serveFile serves opens the requested path and returns the file content
-func serveFile(conn io.ReadWriteCloser, path string) {
-	// default index file for a directory is index.gmi
-	if strings.HasSuffix(path, "/") || path == "" {
-		path = filepath.Join(path, "index.gmi")
+func serveFile(conn io.ReadWriteCloser, reqPath string) {
+	// TODO: [config] default index file for a directory is index.gmi
+	path := reqPath
+	if strings.HasSuffix(reqPath, "/") || reqPath == "" {
+		path = filepath.Join(reqPath, "index.gmi")
 	}
 	cleanPath := filepath.Clean(path)
 
@@ -102,9 +103,30 @@ func serveFile(conn io.ReadWriteCloser, path string) {
 	rootDir = http.Dir(prefixDir + strings.Replace(*contentDir, ".", "", -1))
 
 	// Open the requested resource.
+	var content []byte
 	log.Printf("Fetching: %s", cleanPath)
 	f, err := rootDir.Open(cleanPath)
 	if err != nil {
+		// not putting the /folder to /folder/ redirect here because folder can still
+		// be opened without errors
+		// Directory listing
+		if strings.HasSuffix(cleanPath, "index.gmi") {
+			fullPath := filepath.Join(fmt.Sprint(rootDir), cleanPath)
+			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+				// If and only if the path is index.gmi AND index.gmi does not exist
+				fullPath = strings.TrimSuffix(fullPath, "index.gmi")
+				log.Println("Generating directory listing:", fullPath)
+				content, err = generateDirectoryListing(reqPath, fullPath)
+				if err != nil {
+					log.Println(err)
+					sendResponseHeader(conn, statusServerError, "Error generating directory listing")
+					return
+				}
+				cleanPath += ".gmi" // OOF, this is just to have the text/gemini meta later lol
+				serveContent(conn, content, cleanPath)
+				return
+			}
+		}
 		log.Println(err)
 		sendResponseHeader(conn, statusClientError, "Not found")
 		return
@@ -112,7 +134,7 @@ func serveFile(conn io.ReadWriteCloser, path string) {
 	defer f.Close()
 
 	// Read da file
-	content, err := ioutil.ReadAll(f)
+	content, err = ioutil.ReadAll(f)
 	if err != nil {
 		// /folder to /folder/ redirect
 		// I wish I could check if err is a "path/to/dir" is a directory error
@@ -127,10 +149,13 @@ func serveFile(conn io.ReadWriteCloser, path string) {
 		sendResponseHeader(conn, statusServerError, "Resource could not be read")
 		return
 	}
+	serveContent(conn, content, cleanPath)
+}
 
+func serveContent(conn io.ReadWriteCloser, content []byte, path string) {
 	// MIME
 	meta := http.DetectContentType(content)
-	if strings.HasSuffix(cleanPath, ".gmi") {
+	if strings.HasSuffix(path, ".gmi") {
 		meta = "text/gemini; lang=en; charset=utf-8" // TODO: configure custom meta string
 	}
 
@@ -138,6 +163,7 @@ func serveFile(conn io.ReadWriteCloser, path string) {
 	sendResponseHeader(conn, statusSuccess, meta)
 	log.Println("Writing content")
 	sendResponseContent(conn, content)
+
 }
 
 // func echoFunction(conn io.ReadWriteCloser, content string) {

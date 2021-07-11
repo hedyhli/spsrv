@@ -3,7 +3,7 @@ WIP!
 
 ## todo
 - [x] /folder to /folder/ redirects
-- [ ] directory listing
+- [x] directory listing
 - [ ] ~user directories
 - [x] refactor working dir part
 - [ ] config
