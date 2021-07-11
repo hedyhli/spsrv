@@ -4,6 +4,7 @@ WIP!
 ## todo
 - [x] /folder to /folder/ redirects
 - [x] directory listing
+- [ ] logging to files
 - [ ] ~user directories
 - [x] refactor working dir part
 - [ ] config
