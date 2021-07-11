@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	statusSuccess          = 2
-	statusRedirectTemp     = 3
-	statusClientError = 4
-	statusServerError = 5
+	statusSuccess      = 2
+	statusRedirectTemp = 3
+	statusClientError  = 4
+	statusServerError  = 5
 )
 
 var (
