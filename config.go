@@ -26,7 +26,7 @@ var defaultConf = &Config{
 	DirlistReverse: false,
 	DirlistSort:    "name",
 	DirlistTitles:  true,
-	UserDirEnable:  false,
+	UserDirEnable:  true,
 	UserDir:        "public_spartan",
 }
 
