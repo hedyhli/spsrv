@@ -11,9 +11,9 @@ import (
 	"strings"
 )
 
-func generateDirectoryListing(reqPath, path string) ([]byte, error) {
-	dirSort := "time"
-	dirReverse := false
+func generateDirectoryListing(reqPath, path string, conf *Config) ([]byte, error) {
+	dirSort := conf.DirlistSort
+	dirReverse := conf.DirlistReverse
 	var listing string
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -22,6 +22,7 @@ func generateDirectoryListing(reqPath, path string) ([]byte, error) {
 	listing = "# Directory listing\n\n"
 	// TODO: custom dirlist header in config
 	// Do "up" link first
+	reqPath = strings.ReplaceAll(reqPath, "/.", "")
 	if reqPath != "/" {
 		if strings.HasSuffix(reqPath, "/") {
 			reqPath = reqPath[:len(reqPath)-1]
@@ -59,13 +60,13 @@ func generateDirectoryListing(reqPath, path string) ([]byte, error) {
 		if file.IsDir() {
 			relativeUrl += "/"
 		}
-		listing += fmt.Sprintf("=> %s %s\n", relativeUrl, generatePrettyFileLabel(file, path))
+		listing += fmt.Sprintf("=> %s %s\n", relativeUrl, generatePrettyFileLabel(file, path, conf))
 	}
 	return []byte(listing), nil
 }
 
-func generatePrettyFileLabel(info os.FileInfo, path string) string {
-	dirTitles := true // TODO: config
+func generatePrettyFileLabel(info os.FileInfo, path string, conf *Config) string {
+	dirTitles := conf.DirlistTitles
 	var size string
 	if info.IsDir() {
 		size = "        "

@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,6 +13,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	flag "github.com/spf13/pflag"
 )
 
 const (
@@ -24,38 +25,58 @@ const (
 )
 
 var (
-	hostname   = flag.String("h", "localhost", "hostname")
-	contentDir = flag.String("d", "/var/spartan", "content directory")
-	port       = flag.Int("p", 300, "port number")
+	hostname   = flag.StringP("hostname", "h", defaultConf.Hostname, "Hostname")
+	port       = flag.IntP("port", "p", defaultConf.Port, "Port to listen to")
+	rootDir    = flag.StringP("dir", "d", defaultConf.RootDir, "Root content directory")
+	confPath   = flag.StringP("config", "c", "/etc/spsrv.conf", "Path to config file")
 )
 
 func main() {
 	flag.Parse()
+	conf, err := LoadConfig(*confPath)
+	if err != nil {
+		fmt.Println("Error loading config")
+		fmt.Println(err.Error())
+		return
+	}
 
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	// This allows users overriding values in config via the CLI
+	if *hostname != defaultConf.Hostname {
+		conf.Hostname = *hostname
+	}
+	if *port != defaultConf.Port {
+		conf.Port = *port
+	}
+	if *rootDir != defaultConf.RootDir {
+		conf.RootDir = *rootDir
+	}
+
+	// TODO: do something with conf.Hostname (b(like restricting to ipv4/6 etc)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.Port))
 	if err != nil {
 		log.Fatalf("Unable to listen: %s", err)
 	}
 	log.Println("✨ You are now running on spsrv ✨")
-	log.Printf("Listening for connections on port: %d", *port)
+	log.Printf("Listening for connections on port: %d", conf.Port)
 
-	serveSpartan(listener)
+	serveSpartan(listener, conf)
 }
 
 // serveSpartan accepts connections and returns content
-func serveSpartan(listener net.Listener) {
+func serveSpartan(listener net.Listener, conf *Config) {
 	for {
+		// Blocking until request received
 		conn, err := listener.Accept()
 		if err != nil {
 			continue
 		}
-		log.Println("Accepted connection")
-		go handleConnection(conn)
+		log.Println("Accepted connection from", conn.RemoteAddr())
+		go handleConnection(conn, conf)
 	}
 }
 
-// handleConnection handles a request and does the reponse
-func handleConnection(conn io.ReadWriteCloser) {
+// handleConnection handles a request and does the response
+func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 	defer conn.Close()
 
 	// Check the size of the request buffer.
@@ -73,59 +94,82 @@ func handleConnection(conn io.ReadWriteCloser) {
 
 	// Parse incoming request URL.
 	request := s.Text()
-	path, _, err := parseRequest(request)
+	reqPath, _, err := parseRequest(request)
 	if err != nil {
 		sendResponseHeader(conn, statusClientError, "Bad request")
 		return
 	}
 	log.Println("Handling request:", request)
+	if strings.Contains(reqPath, ".."){
+		sendResponseHeader(conn, statusClientError, "Stop it with your directory traversal technique!")
+		return
+	}
 
 	// Time to fetch the files!
-	serveFile(conn, path)
+	path := resolvePath(reqPath, conf)
+	serveFile(conn, reqPath, path, conf)
 	log.Println("Closed connection")
 }
 
-// serveFile serves opens the requested path and returns the file content
-func serveFile(conn io.ReadWriteCloser, reqPath string) {
+func resolvePath(reqPath string, conf *Config) (path string) {
+	// Handle tildes
+	if strings.HasPrefix(reqPath, "/~") {
+		bits := strings.Split(reqPath, "/")
+		username := bits[1][1:]
+		new_prefix := filepath.Join("/home/", username, conf.UserDir)
+		path = filepath.Clean(strings.Replace(reqPath, bits[1], new_prefix, 1))
+		if strings.HasSuffix(reqPath, "/") {
+			path = filepath.Join(path, "index.gmi")
+		}
+		return
+	}
+	path = reqPath
 	// TODO: [config] default index file for a directory is index.gmi
-	path := reqPath
 	if strings.HasSuffix(reqPath, "/") || reqPath == "" {
 		path = filepath.Join(reqPath, "index.gmi")
 	}
-	cleanPath := filepath.Clean(path)
+	path = filepath.Clean(filepath.Join(conf.RootDir, path))
+	return
+}
 
+// serveFile serves opens the requested path and returns the file content
+func serveFile(conn io.ReadWriteCloser, reqPath, path string, conf *Config) {
 	// If the content directory is not specified as an absolute path, make it absolute.
-	prefixDir := ""
-	var rootDir http.Dir
-	if !strings.HasPrefix(*contentDir, "/") {
-		prefixDir, _ = os.Getwd()
-	}
+	// prefixDir := ""
+	// var rootDir http.Dir
+	// if !strings.HasPrefix(conf.RootDir, "/") {
+	// 	prefixDir, _ = os.Getwd()
+	// }
 	// Avoid directory traversal type attacks.
-	rootDir = http.Dir(prefixDir + strings.Replace(*contentDir, ".", "", -1))
+	// rootDir = http.Dir(prefixDir + strings.Replace(conf.RootDir, ".", "", -1))
 
 	// Open the requested resource.
 	var content []byte
-	log.Printf("Fetching: %s", cleanPath)
-	f, err := rootDir.Open(cleanPath)
+	log.Printf("Fetching: %s", path)
+	f, err := os.Open(path)
 	if err != nil {
 		// not putting the /folder to /folder/ redirect here because folder can still
 		// be opened without errors
 		// Directory listing
-		if strings.HasSuffix(cleanPath, "index.gmi") {
-			fullPath := filepath.Join(fmt.Sprint(rootDir), cleanPath)
+		if strings.HasSuffix(path, "index.gmi") {
+			// fullPath := filepath.Join(fmt.Sprint(rootDir), path)
+			fullPath := path
 			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 				// If and only if the path is index.gmi AND index.gmi does not exist
 				fullPath = strings.TrimSuffix(fullPath, "index.gmi")
-				log.Println("Generating directory listing:", fullPath)
-				content, err = generateDirectoryListing(reqPath, fullPath)
-				if err != nil {
-					log.Println(err)
-					sendResponseHeader(conn, statusServerError, "Error generating directory listing")
+				if _, err := os.Stat(fullPath); err == nil {
+					// If the directly exists
+					log.Println("Generating directory listing:", fullPath)
+					content, err = generateDirectoryListing(reqPath, fullPath, conf)
+					if err != nil {
+						log.Println(err)
+						sendResponseHeader(conn, statusServerError, "Error generating directory listing")
+						return
+					}
+					path += ".gmi" // OOF, this is just to have the text/gemini meta later lol
+					serveContent(conn, content, path)
 					return
 				}
-				cleanPath += ".gmi" // OOF, this is just to have the text/gemini meta later lol
-				serveContent(conn, content, cleanPath)
-				return
 			}
 		}
 		log.Println(err)
@@ -141,16 +185,16 @@ func serveFile(conn io.ReadWriteCloser, reqPath string) {
 		// I wish I could check if err is a "path/to/dir" is a directory error
 		// but I couldn't figure out how, so this check below is the best I
 		// can come up with I guess
-		if _, err := os.Stat(filepath.Join(fmt.Sprint(rootDir), cleanPath+"/")); !os.IsNotExist(err) {
-			log.Println("Redirecting", cleanPath, "to", cleanPath+"/")
-			sendResponseHeader(conn, statusRedirect, cleanPath+"/")
+		if _, err := os.Stat(path + "/"); !os.IsNotExist(err) {
+			log.Println("Redirecting", path, "to", reqPath+"/")
+			sendResponseHeader(conn, statusRedirect, reqPath+"/")
 			return
 		}
 		log.Println(err)
 		sendResponseHeader(conn, statusServerError, "Resource could not be read")
 		return
 	}
-	serveContent(conn, content, cleanPath)
+	serveContent(conn, content, path)
 }
 
 func serveContent(conn io.ReadWriteCloser, content []byte, path string) {
