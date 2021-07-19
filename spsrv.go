@@ -113,7 +113,7 @@ func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 
 func resolvePath(reqPath string, conf *Config) (path string) {
 	// Handle tildes
-	if strings.HasPrefix(reqPath, "/~") {
+	if conf.UserDirEnable && strings.HasPrefix(reqPath, "/~") {
 		bits := strings.Split(reqPath, "/")
 		username := bits[1][1:]
 		new_prefix := filepath.Join("/home/", username, conf.UserDir)
