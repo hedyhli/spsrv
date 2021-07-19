@@ -25,10 +25,10 @@ const (
 )
 
 var (
-	hostname   = flag.StringP("hostname", "h", defaultConf.Hostname, "Hostname")
-	port       = flag.IntP("port", "p", defaultConf.Port, "Port to listen to")
-	rootDir    = flag.StringP("dir", "d", defaultConf.RootDir, "Root content directory")
-	confPath   = flag.StringP("config", "c", "/etc/spsrv.conf", "Path to config file")
+	hostname = flag.StringP("hostname", "h", defaultConf.Hostname, "Hostname")
+	port     = flag.IntP("port", "p", defaultConf.Port, "Port to listen to")
+	rootDir  = flag.StringP("dir", "d", defaultConf.RootDir, "Root content directory")
+	confPath = flag.StringP("config", "c", "/etc/spsrv.conf", "Path to config file")
 )
 
 func main() {
@@ -100,7 +100,7 @@ func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 		return
 	}
 	log.Println("Handling request:", request)
-	if strings.Contains(reqPath, ".."){
+	if strings.Contains(reqPath, "..") {
 		sendResponseHeader(conn, statusClientError, "Stop it with your directory traversal technique!")
 		return
 	}
