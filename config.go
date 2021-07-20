@@ -8,12 +8,12 @@ import (
 )
 
 type Config struct {
-	Port          int
-	Hostname      string
-	RootDir       string
-	UserDirEnable bool
-	UserDir       string
-	// UserSlug string
+	Port           int
+	Hostname       string
+	RootDir        string
+	UserDirEnable  bool
+	UserDir        string
+	DirlistEnable  bool
 	DirlistReverse bool
 	DirlistSort    string
 	DirlistTitles  bool
@@ -23,6 +23,7 @@ var defaultConf = &Config{
 	Port:           300,
 	Hostname:       "localhost",
 	RootDir:        "/var/spartan/",
+	DirlistEnable:  true,
 	DirlistReverse: false,
 	DirlistSort:    "name",
 	DirlistTitles:  true,

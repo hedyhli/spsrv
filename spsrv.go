@@ -151,7 +151,7 @@ func serveFile(conn io.ReadWriteCloser, reqPath, path string, conf *Config) {
 		// not putting the /folder to /folder/ redirect here because folder can still
 		// be opened without errors
 		// Directory listing
-		if strings.HasSuffix(path, "index.gmi") {
+		if conf.DirlistEnable && strings.HasSuffix(path, "index.gmi") {
 			// fullPath := filepath.Join(fmt.Sprint(rootDir), path)
 			fullPath := path
 			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
