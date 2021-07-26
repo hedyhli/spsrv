@@ -94,10 +94,17 @@ func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 
 	// Parse incoming request URL.
 	request := s.Text()
-	reqPath, _, err := parseRequest(request)
+	host, reqPath, _, err := parseRequest(request)
 	if err != nil {
 		sendResponseHeader(conn, statusClientError, "Bad request")
 		return
+	}
+	if conf.RestrictHostname != "" {
+		if conf.RestrictHostname != host {
+			log.Println("Request host does not match conf.RestrictHostname, returning client error.")
+			sendResponseHeader(conn, statusClientError, "No proxying to other hosts!")
+			return
+		}
 	}
 	log.Println("Handling request:", request)
 	if strings.Contains(reqPath, "..") {
@@ -231,13 +238,13 @@ func sendResponseContent(conn io.ReadWriteCloser, content []byte) {
 	}
 }
 
-func parseRequest(r string) (path string, contentLength int, err error) {
+func parseRequest(r string) (host, path string, contentLength int, err error) {
 	parts := strings.Split(r, " ")
 	if len(parts) != 3 {
 		err = errors.New("Bad request")
 		return
 	}
-	_, path, contentLengthString := parts[0], parts[1], parts[2]
+	host, path, contentLengthString := parts[0], parts[1], parts[2]
 	contentLength, err = strconv.Atoi(contentLengthString)
 	if err != nil {
 		return
