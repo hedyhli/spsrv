@@ -68,9 +68,9 @@ func serveSpartan(listener net.Listener, conf *Config) {
 		// Blocking until request received
 		conn, err := listener.Accept()
 		if err != nil {
-			continue
+			log.Println("Error accepting connection:", err.Error())
 		}
-		log.Println("Accepted connection from", conn.RemoteAddr())
+		log.Println("--> Connection from:", conn.RemoteAddr())
 		go handleConnection(conn, conf)
 	}
 }
@@ -109,6 +109,7 @@ func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 		}
 	}
 	if strings.Contains(reqPath, "..") {
+		log.Println("Returning client error (directory traversal)")
 		sendResponseHeader(conn, statusClientError, "Stop it with your directory traversal technique!")
 		return
 	}
@@ -119,11 +120,22 @@ func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 	log.Println("Closed connection")
 }
 
+// resolvePath takes in teh request path and returns the cleaned filepath that needs to be fetched.
+// It also handles user directories paths /~user/ and /~user if user directories is enabled in the config.
 func resolvePath(reqPath string, conf *Config) (path string) {
 	// Handle tildes
 	if conf.UserDirEnable && strings.HasPrefix(reqPath, "/~") {
 		bits := strings.Split(reqPath, "/")
 		username := bits[1][1:]
+		if len(bits) == 2 && !strings.HasSuffix(reqPath, "/") {
+			// /~user -> /~user/
+			// Not going to redirect here because this function (resolvePath) should stay pure
+			// it should only take a reqPath and return the file path requested.
+			reqPath += "/"
+			// This could potentially create a problem with search engines indenxing both /~user and
+			// /~user/ and have duplicate results, although in that case the search should handle
+			// omitting duplicates...
+		}
 		new_prefix := filepath.Join("/home/", username, conf.UserDir)
 		path = filepath.Clean(strings.Replace(reqPath, bits[1], new_prefix, 1))
 		if strings.HasSuffix(reqPath, "/") {
@@ -212,9 +224,8 @@ func serveContent(conn io.ReadWriteCloser, content []byte, path string) {
 		meta = "text/gemini; lang=en; charset=utf-8" // TODO: configure custom meta string
 	}
 
-	log.Println("Writing response header")
+	log.Println("Serving content:", path)
 	sendResponseHeader(conn, statusSuccess, meta)
-	log.Println("Writing content")
 	sendResponseContent(conn, content)
 
 }
