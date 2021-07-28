@@ -94,8 +94,10 @@ func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 
 	// Parse incoming request URL.
 	request := s.Text()
+	log.Println("--> Incoming request: \"" + request + "\"")
 	host, reqPath, _, err := parseRequest(request)
 	if err != nil {
+		log.Println("Bad request")
 		sendResponseHeader(conn, statusClientError, "Bad request")
 		return
 	}
@@ -106,7 +108,6 @@ func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 			return
 		}
 	}
-	log.Println("Handling request:", request)
 	if strings.Contains(reqPath, "..") {
 		sendResponseHeader(conn, statusClientError, "Stop it with your directory traversal technique!")
 		return
