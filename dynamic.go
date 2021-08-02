@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool){
+func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool) {
 	ok = true
 	path := req.filePath
 	conn := req.conn

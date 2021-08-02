@@ -18,11 +18,11 @@ import (
 )
 
 type Request struct {
-	conn io.ReadWriteCloser
-	netConn *net.Conn
-	user string
-	path string  // Requested path
-	filePath string  // Actual file path that does not include the content dir name
+	conn     io.ReadWriteCloser
+	netConn  *net.Conn
+	user     string
+	path     string // Requested path
+	filePath string // Actual file path that does not include the content dir name
 }
 
 const (
@@ -139,7 +139,7 @@ func handleConnection(netConn net.Conn, conf *Config) {
 				return
 			}
 
-			break  // CGI failed. just handle the request as if it's a static file.
+			break // CGI failed. just handle the request as if it's a static file.
 		}
 	}
 
@@ -163,7 +163,7 @@ func resolvePath(reqPath string, conf *Config, req *Request) (path string) {
 			// /~user/ and have duplicate results, although in that case the search should handle
 			// omitting duplicates...
 		}
-		req.filePath = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(reqPath, "/~" + username)), "/")
+		req.filePath = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(reqPath, "/~"+username)), "/")
 		new_prefix := filepath.Join("/home/", username, conf.UserDir)
 		req.user = username
 		path = filepath.Clean(strings.Replace(reqPath, bits[1], new_prefix, 1))
