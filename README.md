@@ -9,6 +9,8 @@ A static spartan server with many features:
   * directory listing options
   * user directory feature and userdir path
 * CGI
+  * per user CGI (unsafe, like molly-brown)
+  * input data as stdin pipe
 
 ## todo
 - [x] /folder to /folder/ redirects
@@ -24,6 +26,6 @@ A static spartan server with many features:
   - [ ] dirlist title
   - [ ] userdir slug
 - [x] CGI
-  - [ ] pipe data block
+  - [x] pipe data block
   - [ ] user cgi config and change uid to user
   - [ ] regex in cgi paths
