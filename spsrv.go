@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -17,12 +18,15 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+var doneScanningRequest = false
+
 type Request struct {
 	conn     io.ReadWriteCloser
 	netConn  *net.Conn
 	user     string
 	path     string // Requested path
 	filePath string // Actual file path that does not include the content dir name
+	data string
 }
 
 const (
@@ -86,14 +90,15 @@ func serveSpartan(listener net.Listener, conf *Config) {
 // handleConnection handles a request and does the response
 func handleConnection(netConn net.Conn, conf *Config) {
 	conn := io.ReadWriteCloser(netConn)
-	defer conn.Close()
+	// defer conn.Close()
+	defer func() {
+		conn.Close()
+		log.Println("Closed connection")
+	}()
 
 	// Check the size of the request buffer.
 	s := bufio.NewScanner(conn)
-	if len(s.Bytes()) > 1024 {
-		sendResponseHeader(conn, statusClientError, "Request exceeds maximum permitted length")
-		return
-	}
+	s.Split(ScanRequest)
 
 	// Sanity check incoming request URL content.
 	if ok := s.Scan(); !ok {
@@ -101,10 +106,11 @@ func handleConnection(netConn net.Conn, conf *Config) {
 		return
 	}
 
-	// Parse incoming request URL.
+	// Parse request
 	request := s.Text()
+	doneScanningRequest = true
 	log.Println("--> Incoming request: \"" + request + "\"")
-	host, reqPath, _, err := parseRequest(request)
+	host, reqPath, dataLen, err := parseRequest(request)
 	if err != nil {
 		log.Println("Bad request")
 		sendResponseHeader(conn, statusClientError, "Bad request")
@@ -123,7 +129,24 @@ func handleConnection(netConn net.Conn, conf *Config) {
 		return
 	}
 
-	req := &Request{path: reqPath, netConn: &netConn, conn: conn}
+	var data string
+	if dataLen != 0 {
+		log.Println("Reading data, length", dataLen)
+		// Read the dataLen amount of data from the data block
+		var newData string
+		for s.Scan() {
+			newData = s.Text()
+			if len(data) + len(newData) == dataLen {
+				data += newData
+				break
+			}
+			if len(data) + len(newData) > dataLen {
+				data += newData[:dataLen-len(data)-1]
+			}
+			data += newData
+		}
+	}
+	req := &Request{path: reqPath, netConn: &netConn, conn: conn, data: data}
 
 	// Time to fetch the files!
 	path := resolvePath(reqPath, conf, req)
@@ -135,7 +158,6 @@ func handleConnection(netConn net.Conn, conf *Config) {
 
 			ok := handleCGI(conf, req, cgiPath)
 			if ok {
-				log.Println("Closed connection")
 				return
 			}
 
@@ -143,8 +165,14 @@ func handleConnection(netConn net.Conn, conf *Config) {
 		}
 	}
 
+	// Reaching here means it is a static file
+	if dataLen != 0 {
+		log.Printf("Got data block of length %v, returning client error.", dataLen)
+		sendResponseHeader(conn, statusClientError, "Unwanted input data block received")
+		return
+	}
+
 	serveFile(conn, reqPath, path, conf)
-	log.Println("Closed connection")
 }
 
 // resolvePath takes in teh request path and returns the cleaned filepath that needs to be fetched.
@@ -289,4 +317,20 @@ func parseRequest(r string) (host, path string, contentLength int, err error) {
 		return
 	}
 	return
+}
+
+// ScanRequest is like bufio.ScanBytes but returns a byte if no more \n is found
+func ScanRequest(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+	if doneScanningRequest {
+		// Return a byte
+		return 1, data[:1], nil
+	}
+	// Read request
+	if i := bytes.IndexByte(data, '\n'); i >= 0 {
+		return i + 1, bytes.TrimRight(data[0:i], "\r"), nil
+	}
+	return 0, nil, nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -42,11 +43,23 @@ func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, scriptPath)
+
+	// Put input data into stdin pipe
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		log.Println("Error creating a stdin pipe:", err.Error())
+		ok = false
+		return
+	}
+	io.WriteString(stdin, req.data)
+	stdin.Close()
+
+	// Set environment variables
 	cmd.Env = []string{}
 	for key, value := range vars {
 		cmd.Env = append(cmd.Env, key+"="+value)
 	}
-	// Manually change the uid/gid for the command, rather than the calling goroutine
+	// Manually change the uid/gid for the command
 	// Fetch user info
 	// user, err := user.Lookup(req.user)
 	// if err == nil {
