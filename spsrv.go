@@ -169,15 +169,16 @@ func handleConnection(netConn net.Conn, conf *Config) {
 	// Check for CGI
 	for _, cgiPath := range conf.CGIPaths {
 		if strings.HasPrefix(req.filePath, cgiPath) {
-			if req.user != "" && conf.UserCGIEnable {
-				log.Println("Attempting CGI:", req.filePath)
-
-				ok := handleCGI(conf, req, cgiPath)
-				if ok {
-					return
-				}
-				break // CGI failed. just handle the request as if it's a static file.
+			if req.user != "" && !conf.UserCGIEnable {
+				break
 			}
+			log.Println("Attempting CGI:", req.filePath)
+
+			ok := handleCGI(conf, req, cgiPath)
+			if ok {
+				return
+			}
+			break // CGI failed. just handle the request as if it's a static file.
 		}
 	}
 
