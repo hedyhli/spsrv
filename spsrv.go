@@ -319,7 +319,7 @@ func parseRequest(r string) (host, path string, contentLength int, err error) {
 	return
 }
 
-// ScanRequest is like bufio.ScanBytes but returns a byte if no more \n is found
+// ScanRequest returns a line if we haven't scanned request line yet, else, returns a byte
 func ScanRequest(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
