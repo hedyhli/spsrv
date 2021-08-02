@@ -18,7 +18,6 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-var doneScanningRequest = false
 
 type Request struct {
 	conn     io.ReadWriteCloser
@@ -96,9 +95,25 @@ func handleConnection(netConn net.Conn, conf *Config) {
 		log.Println("Closed connection")
 	}()
 
+	doneScanningRequest := false
 	// Check the size of the request buffer.
 	s := bufio.NewScanner(conn)
-	s.Split(ScanRequest)
+	s.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+		if doneScanningRequest {
+			// Return a byte
+			return 1, data[:1], nil
+		}
+		// Read request
+		if i := bytes.IndexByte(data, '\n'); i >= 0 {
+			return i + 1, bytes.TrimRight(data[0:i], "\r"), nil
+		}
+		return 0, nil, nil
+	})
+
 
 	// Sanity check incoming request URL content.
 	if ok := s.Scan(); !ok {
@@ -154,14 +169,15 @@ func handleConnection(netConn net.Conn, conf *Config) {
 	// Check for CGI
 	for _, cgiPath := range conf.CGIPaths {
 		if strings.HasPrefix(req.filePath, cgiPath) {
-			log.Println("Attempting CGI:", req.filePath)
+			if req.user != "" && conf.UserCGIEnable {
+				log.Println("Attempting CGI:", req.filePath)
 
-			ok := handleCGI(conf, req, cgiPath)
-			if ok {
-				return
+				ok := handleCGI(conf, req, cgiPath)
+				if ok {
+					return
+				}
+				break // CGI failed. just handle the request as if it's a static file.
 			}
-
-			break // CGI failed. just handle the request as if it's a static file.
 		}
 	}
 
@@ -319,18 +335,3 @@ func parseRequest(r string) (host, path string, contentLength int, err error) {
 	return
 }
 
-// ScanRequest returns a line if we haven't scanned request line yet, else, returns a byte
-func ScanRequest(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	if atEOF && len(data) == 0 {
-		return 0, nil, nil
-	}
-	if doneScanningRequest {
-		// Return a byte
-		return 1, data[:1], nil
-	}
-	// Read request
-	if i := bytes.IndexByte(data, '\n'); i >= 0 {
-		return i + 1, bytes.TrimRight(data[0:i], "\r"), nil
-	}
-	return 0, nil, nil
-}

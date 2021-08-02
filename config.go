@@ -21,6 +21,7 @@ type Config struct {
 	DirlistTitles    bool
 	RestrictHostname string
 	CGIPaths         []string
+	UserCGIEnable    bool
 }
 
 var defaultConf = &Config{
@@ -35,6 +36,7 @@ var defaultConf = &Config{
 	UserDir:          "public_spartan",
 	RestrictHostname: "",
 	CGIPaths:         []string{"cgi/"},
+	UserCGIEnable:    false,  // Turned off by default because scripts are run by server user as of now
 }
 
 func LoadConfig(path string) (*Config, error) {
