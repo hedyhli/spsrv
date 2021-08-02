@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"os"
+	"strings"
+
+	"github.com/BurntSushi/toml"
 )
 
 type Config struct {
@@ -58,10 +60,13 @@ func LoadConfig(path string) (*Config, error) {
 		}
 	}
 
+	// Config validation
 	if conf.DirlistSort != "name" && conf.DirlistSort != "time" && conf.DirlistSort != "size" {
 		fmt.Println("Warning: DirlistSort config option is not one of name/time/size, defaulting to name.")
 		conf.DirlistSort = "name"
 	}
+	// Strip trailing '/' so /~user to /~user/ redirects can work
+	conf.UserDir = strings.TrimRight(conf.UserDir, "/")
 
 	return &conf, nil
 }

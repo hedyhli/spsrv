@@ -154,19 +154,16 @@ func resolvePath(reqPath string, conf *Config, req *Request) (path string) {
 	if conf.UserDirEnable && strings.HasPrefix(reqPath, "/~") {
 		bits := strings.Split(reqPath, "/")
 		username := bits[1][1:]
-		if len(bits) == 2 && !strings.HasSuffix(reqPath, "/") {
-			// /~user -> /~user/
-			// Not going to redirect here because this function (resolvePath) should stay pure
-			// it should only take a reqPath and return the file path requested.
-			reqPath += "/"
-			// This could potentially create a problem with search engines indenxing both /~user and
-			// /~user/ and have duplicate results, although in that case the search should handle
-			// omitting duplicates...
-		}
+
+		// /~user to /~user/ is somehow able to be handled together with any other /folder to /foler/ redirects
+		// So I won't worry about that nor handle it specifically
+
 		req.filePath = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(reqPath, "/~"+username)), "/")
+
 		new_prefix := filepath.Join("/home/", username, conf.UserDir)
 		req.user = username
 		path = filepath.Clean(strings.Replace(reqPath, bits[1], new_prefix, 1))
+
 		if strings.HasSuffix(reqPath, "/") {
 			path = filepath.Join(path, "index.gmi")
 		}
