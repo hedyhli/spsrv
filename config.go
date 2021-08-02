@@ -18,6 +18,7 @@ type Config struct {
 	DirlistSort      string
 	DirlistTitles    bool
 	RestrictHostname string
+	CGIPaths         []string
 }
 
 var defaultConf = &Config{
@@ -31,6 +32,7 @@ var defaultConf = &Config{
 	UserDirEnable:    true,
 	UserDir:          "public_spartan",
 	RestrictHostname: "",
+	CGIPaths:         []string{"cgi/"},
 }
 
 func LoadConfig(path string) (*Config, error) {

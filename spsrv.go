@@ -17,6 +17,14 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+type Request struct {
+	conn io.ReadWriteCloser
+	netConn *net.Conn
+	user string
+	path string  // Requested path
+	filePath string  // Actual file path that does not include the content dir name
+}
+
 const (
 	statusSuccess     = 2
 	statusRedirect    = 3
@@ -76,7 +84,8 @@ func serveSpartan(listener net.Listener, conf *Config) {
 }
 
 // handleConnection handles a request and does the response
-func handleConnection(conn io.ReadWriteCloser, conf *Config) {
+func handleConnection(netConn net.Conn, conf *Config) {
+	conn := io.ReadWriteCloser(netConn)
 	defer conn.Close()
 
 	// Check the size of the request buffer.
@@ -114,15 +123,33 @@ func handleConnection(conn io.ReadWriteCloser, conf *Config) {
 		return
 	}
 
+	req := &Request{path: reqPath, netConn: &netConn, conn: conn}
+
 	// Time to fetch the files!
-	path := resolvePath(reqPath, conf)
+	path := resolvePath(reqPath, conf, req)
+
+	// Check for CGI
+	for _, cgiPath := range conf.CGIPaths {
+		if strings.HasPrefix(req.filePath, cgiPath) {
+			log.Println("Attempting CGI:", req.filePath)
+
+			ok := handleCGI(conf, req, cgiPath)
+			if ok {
+				log.Println("Closed connection")
+				return
+			}
+
+			break  // CGI failed. just handle the request as if it's a static file.
+		}
+	}
+
 	serveFile(conn, reqPath, path, conf)
 	log.Println("Closed connection")
 }
 
 // resolvePath takes in teh request path and returns the cleaned filepath that needs to be fetched.
 // It also handles user directories paths /~user/ and /~user if user directories is enabled in the config.
-func resolvePath(reqPath string, conf *Config) (path string) {
+func resolvePath(reqPath string, conf *Config, req *Request) (path string) {
 	// Handle tildes
 	if conf.UserDirEnable && strings.HasPrefix(reqPath, "/~") {
 		bits := strings.Split(reqPath, "/")
@@ -136,7 +163,9 @@ func resolvePath(reqPath string, conf *Config) (path string) {
 			// /~user/ and have duplicate results, although in that case the search should handle
 			// omitting duplicates...
 		}
+		req.filePath = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(reqPath, "/~" + username)), "/")
 		new_prefix := filepath.Join("/home/", username, conf.UserDir)
+		req.user = username
 		path = filepath.Clean(strings.Replace(reqPath, bits[1], new_prefix, 1))
 		if strings.HasSuffix(reqPath, "/") {
 			path = filepath.Join(path, "index.gmi")
@@ -148,6 +177,7 @@ func resolvePath(reqPath string, conf *Config) (path string) {
 	if strings.HasSuffix(reqPath, "/") || reqPath == "" {
 		path = filepath.Join(reqPath, "index.gmi")
 	}
+	req.filePath = filepath.Clean(strings.TrimPrefix(path, "/"))
 	path = filepath.Clean(filepath.Join(conf.RootDir, path))
 	return
 }
