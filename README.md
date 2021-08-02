@@ -8,6 +8,7 @@ A static spartan server with many features:
 * CONF or TOML config file
   * directory listing options
   * user directory feature and userdir path
+* CGI
 
 ## todo
 - [x] /folder to /folder/ redirects
@@ -22,4 +23,7 @@ A static spartan server with many features:
   - [x] public dir
   - [ ] dirlist title
   - [ ] userdir slug
-- [ ] /echo /guestbook (configurable)
+- [x] CGI
+  - [ ] pipe data block
+  - [ ] user cgi config and change uid to user
+  - [ ] regex in cgi paths
