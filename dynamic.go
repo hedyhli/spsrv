@@ -7,11 +7,9 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -50,15 +48,15 @@ func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool) {
 	}
 	// Manually change the uid/gid for the command, rather than the calling goroutine
 	// Fetch user info
-	user, err := user.Lookup(req.user)
-	if err == nil {
-		tmp, _ := strconv.ParseUint(user.Uid, 10, 32)
-		uid := uint32(tmp)
-		tmp, _ = strconv.ParseUint(user.Gid, 10, 32)
-		gid := uint32(tmp)
-		cmd.SysProcAttr = &syscall.SysProcAttr{}
-		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uid, Gid: gid}
-	}
+	// user, err := user.Lookup(req.user)
+	// if err == nil {
+	// 	tmp, _ := strconv.ParseUint(user.Uid, 10, 32)
+	// 	uid := uint32(tmp)
+	// 	tmp, _ = strconv.ParseUint(user.Gid, 10, 32)
+	// 	gid := uint32(tmp)
+	// 	cmd.SysProcAttr = &syscall.SysProcAttr{}
+	// 	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uid, Gid: gid}
+	// }
 
 	// Fetch and check output
 	response, err := cmd.Output()
