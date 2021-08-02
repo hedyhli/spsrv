@@ -26,7 +26,7 @@ type Request struct {
 	user     string
 	path     string // Requested path
 	filePath string // Actual file path that does not include the content dir name
-	data string
+	data     string
 }
 
 const (
@@ -136,11 +136,11 @@ func handleConnection(netConn net.Conn, conf *Config) {
 		var newData string
 		for s.Scan() {
 			newData = s.Text()
-			if len(data) + len(newData) == dataLen {
+			if len(data)+len(newData) == dataLen {
 				data += newData
 				break
 			}
-			if len(data) + len(newData) > dataLen {
+			if len(data)+len(newData) > dataLen {
 				data += newData[:dataLen-len(data)-1]
 			}
 			data += newData
