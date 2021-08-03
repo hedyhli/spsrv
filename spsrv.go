@@ -18,7 +18,6 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-
 type Request struct {
 	conn     io.ReadWriteCloser
 	netConn  *net.Conn
@@ -113,7 +112,6 @@ func handleConnection(netConn net.Conn, conf *Config) {
 		}
 		return 0, nil, nil
 	})
-
 
 	// Sanity check incoming request URL content.
 	if ok := s.Scan(); !ok {
@@ -335,4 +333,3 @@ func parseRequest(r string) (host, path string, contentLength int, err error) {
 	}
 	return
 }
-

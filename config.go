@@ -10,31 +10,31 @@ import (
 )
 
 type Config struct {
-	Port             int
-	Hostname         string
-	RootDir          string
-	UserDirEnable    bool
-	UserDir          string
-	DirlistEnable    bool
-	DirlistReverse   bool
-	DirlistSort      string
-	DirlistTitles    bool
-	CGIPaths         []string
-	UserCGIEnable    bool
+	Port           int
+	Hostname       string
+	RootDir        string
+	UserDirEnable  bool
+	UserDir        string
+	DirlistEnable  bool
+	DirlistReverse bool
+	DirlistSort    string
+	DirlistTitles  bool
+	CGIPaths       []string
+	UserCGIEnable  bool
 }
 
 var defaultConf = &Config{
-	Port:             300,
-	Hostname:         "localhost",
-	RootDir:          "/var/spartan/",
-	DirlistEnable:    true,
-	DirlistReverse:   false,
-	DirlistSort:      "name",
-	DirlistTitles:    true,
-	UserDirEnable:    true,
-	UserDir:          "public_spartan",
-	CGIPaths:         []string{"cgi/"},
-	UserCGIEnable:    false,  // Turned off by default because scripts are run by server user as of now
+	Port:           300,
+	Hostname:       "localhost",
+	RootDir:        "/var/spartan/",
+	DirlistEnable:  true,
+	DirlistReverse: false,
+	DirlistSort:    "name",
+	DirlistTitles:  true,
+	UserDirEnable:  true,
+	UserDir:        "public_spartan",
+	CGIPaths:       []string{"cgi/"},
+	UserCGIEnable:  false, // Turned off by default because scripts are run by server user as of now
 }
 
 func LoadConfig(path string) (*Config, error) {
