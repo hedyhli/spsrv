@@ -76,7 +76,7 @@ func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool) {
 
 	if ctx.Err() == context.DeadlineExceeded {
 		log.Println("Terminating CGI process " + path + " due to exceeding 10 second runtime limit.")
-		conn.Write([]byte("42 CGI process timed out!\r\n"))
+		conn.Write([]byte("5 CGI process timed out!\r\n"))
 		return
 	}
 	if err != nil {
@@ -84,7 +84,7 @@ func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool) {
 		if err, ok := err.(*exec.ExitError); ok {
 			log.Println("↳ stderr output: " + string(err.Stderr))
 		}
-		conn.Write([]byte("42 CGI error\r\n"))
+		conn.Write([]byte("5 CGI error\r\n"))
 		return
 	}
 	// Extract response header
@@ -92,7 +92,7 @@ func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool) {
 	_, err2 := strconv.Atoi(strings.Fields(string(header))[0])
 	if err != nil || err2 != nil {
 		log.Println("Unable to parse first line of output from CGI process " + path + " as valid Gemini response header.  Line was: " + string(header))
-		conn.Write([]byte("42 CGI error\r\n"))
+		conn.Write([]byte("5 CGI error\r\n"))
 		return
 	}
 	log.Println("Returning CGI output")
