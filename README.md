@@ -17,11 +17,14 @@ A static spartan server with many features:
 ### with `go get`
 first, you need to have go installed and have a folder `~/go` with `$GOPATH` pointing to it.
 then you can call `go get git.sr.ht/~hedy/spsrv` and there will be a binary at `~/go/bin/` with the source code at `~/go/src/`
+
 feel free to move the binary somewhere else like `/usr/sbin/`
 
 ### build it yourself
 run `git clone https://git.sr.ht/~hedy/spsrv` from any directory and `cd spsrv`
+
 make sure you have go installed and working.
+
 ```
 go build
 ```
@@ -31,9 +34,11 @@ If you don't have/want go installed, you can contact me, and if you're lucky, I 
 
 ## configuration
 The default config file location is `/etc/spsrv.conf` you can specify your own path by running spsrv like
+
 ```
 spsrv -c /path/to/file.conf
 ```
+
 You don't need a config file to have spsrv running, it will just use the default values.
 
 ### config options
@@ -65,6 +70,25 @@ Here are the config options and their default values
 - `CGIPaths=["cgi/"]`: list of paths where world-executable files will be run as CGI processes. These paths would be checked if it prefix the requested path. For the default value, a request of `/cgi/hi.sh` (requesting to `./public/cgi/hi.sh`, for example) will run `hi.sh` script if it's world executable.
 - `usercgiEnable=false`: enable running user's CGI scripts too. This is dangerous as spsrv does not (yet) change the Uid of the CGI process, hence the process would be ran by the same user that is running the server, which could mean write access to configuration files, etc. Note that this option will be assumed `false` if `userdirEnable` is set to `false`. Which means if user directories are not enabled, there will be no per-user CGI.
 
+## CLI
+
+You can override values in config file if you supply then from the command line:
+
+```
+Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help ]
+
+    -c, --config string     Path to config file
+    -d, --dir string        Root content directory
+    -h, --hostname string   Hostname
+    -p, --port int          Port to listen to`)
+```
+
+Note that you *cannot* set the hostname or the dir path to `,` because spsrv uses that to check whether
+you provided an option. You can't set port to `0` either, sorry, this limitation comes with the advantage
+of being able to override config values from the command line.
+
+There are no arguments wanted when running spsrv, only options as listed above :)
+
 ## todo
 - [x] /folder to /folder/ redirects
 - [x] directory listing
@@ -78,6 +102,7 @@ Here are the config options and their default values
   - [x] public dir
   - [ ] dirlist title
   - [ ] userdir slug
+  - [ ] redirects
 - [x] CGI
   - [x] pipe data block
   - [ ] user cgi config and change uid to user

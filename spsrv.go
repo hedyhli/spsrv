@@ -34,15 +34,41 @@ const (
 	statusServerError = 5
 )
 
+// The following default values are set so that a user would never set any value from the CLI to
+// the following. so we can distinguish between user supplied value and the default value.
+// The default char is not "" because you can set hostname to "" and it will allow requests to
+// any hostname.
+// This is not using defaultConf values either because if the config has non-default values, and
+// default value is supplied from the CLI, we want to keep taht default value, which is likely what
+// user wants.
+var cliDefaultChar = ","
+var cliDefaultInt = 0
+
 var (
-	hostname = flag.StringP("hostname", "h", defaultConf.Hostname, "Hostname")
-	port     = flag.IntP("port", "p", defaultConf.Port, "Port to listen to")
-	rootDir  = flag.StringP("dir", "d", defaultConf.RootDir, "Root content directory")
+	hostname = flag.StringP("hostname", "h", cliDefaultChar, "Hostname")
+	port     = flag.IntP("port", "p", cliDefaultInt, "Port to listen to")
+	rootDir  = flag.StringP("dir", "d", cliDefaultChar, "Root content directory")
 	confPath = flag.StringP("config", "c", "/etc/spsrv.conf", "Path to config file")
+	helpFlag = flag.BoolP("help", "?", false, "Get CLI help")
 )
 
 func main() {
+	// Custom usage function because we don't want the "pflag: help requested" message, and
+	// we don't want to show the default values.
+	flag.Usage = func() {
+		fmt.Println(`Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help ]
+
+    -c, --config string     Path to config file
+    -d, --dir string        Root content directory
+    -h, --hostname string   Hostname
+    -p, --port int          Port to listen to`)
+	}
 	flag.Parse()
+
+	if *helpFlag {
+		flag.Usage()
+		return
+	}
 	conf, err := LoadConfig(*confPath)
 	if err != nil {
 		fmt.Println("Error loading config")
@@ -51,17 +77,16 @@ func main() {
 	}
 
 	// This allows users overriding values in config via the CLI
-	if *hostname != defaultConf.Hostname {
+	if *hostname != cliDefaultChar {
 		conf.Hostname = *hostname
 	}
-	if *port != defaultConf.Port {
+	if *port != cliDefaultInt {
 		conf.Port = *port
 	}
-	if *rootDir != defaultConf.RootDir {
+	if *rootDir != cliDefaultChar {
 		conf.RootDir = *rootDir
 	}
 
-	// TODO: do something with conf.Hostname (b(like restricting to ipv4/6 etc)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.Port))
 	if err != nil {
 		log.Fatalf("Unable to listen: %s", err)
