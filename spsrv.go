@@ -24,6 +24,7 @@ type Request struct {
 	user     string
 	path     string // Requested path
 	filePath string // Actual file path that does not include the content dir name
+	dataLen  int
 	data     string
 }
 
@@ -184,7 +185,7 @@ func handleConnection(netConn net.Conn, conf *Config) {
 			data += newData
 		}
 	}
-	req := &Request{path: reqPath, netConn: &netConn, conn: conn, data: data}
+	req := &Request{path: reqPath, netConn: &netConn, conn: conn, data: data, dataLen: dataLen}
 
 	// Time to fetch the files!
 	path := resolvePath(reqPath, conf, req)

@@ -110,12 +110,13 @@ func prepareCGIVariables(conf *Config, req *Request, script_path string) map[str
 
 func prepareGatewayVariables(conf *Config, req *Request) map[string]string {
 	vars := make(map[string]string)
-	// vars["QUERY_STRING"] = URL.RawQuery
 	vars["REQUEST_METHOD"] = ""
 	vars["SERVER_NAME"] = conf.Hostname
 	vars["SERVER_PORT"] = strconv.Itoa(conf.Port)
 	vars["SERVER_PROTOCOL"] = "SPARTAN"
 	vars["SERVER_SOFTWARE"] = "SPSRV"
+
+	vars["DATA_LENGTH"] = strconv.Itoa(req.dataLen)
 
 	host, _, _ := net.SplitHostPort((*req.netConn).RemoteAddr().String())
 	vars["REMOTE_ADDR"] = host

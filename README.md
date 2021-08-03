@@ -6,21 +6,24 @@ A static spartan server with many features:
 * /~user directories
 * directory listing
 * CONF or TOML config file
-  * directory listing options
-  * user directory feature and userdir path
 * CGI
-  * per user CGI (unsafe, like molly-brown)
-  * input data as stdin pipe
 
 ## install
 
+you have two options for now:
+
 ### with `go get`
 first, you need to have go installed and have a folder `~/go` with `$GOPATH` pointing to it.
-then you can call `go get git.sr.ht/~hedy/spsrv` and there will be a binary at `~/go/bin/` with the source code at `~/go/src/`
+
+```
+go get git.sr.ht/~hedy/spsrv
+```
+
+there will be a binary at `~/go/bin/` with the source code at `~/go/src/`
 
 feel free to move the binary somewhere else like `/usr/sbin/`
 
-### build it yourself
+### or just build it yourself
 run `git clone https://git.sr.ht/~hedy/spsrv` from any directory and `cd spsrv`
 
 make sure you have go installed and working.
@@ -28,9 +31,13 @@ make sure you have go installed and working.
 ```
 go build
 ```
+
 when it finishes, the binary will be in the current directory.
 
+### otherwise...
+
 If you don't have/want go installed, you can contact me, and if you're lucky, I have the same OS as you and you can use my compiled binary (lol). I'll eventually have automated uploads of binaries for various architectures for each release in the future.
+
 
 ## configuration
 The default config file location is `/etc/spsrv.conf` you can specify your own path by running spsrv like
@@ -49,26 +56,26 @@ Here are the config options and their default values
 
 **general**
 
-- `port=300`: port to listen to
-- `hostname="localhost"`: if this is set, any request that for hostnames other than this value would be rejected
-- `rootdir="/var/spartan"`: folder for fetching files
+* `port=300`: port to listen to
+* `hostname="localhost"`: if this is set, any request that for hostnames other than this value would be rejected
+* `rootdir="/var/spartan"`: folder for fetching files
 
 **directory listing**
 
-- `dirlistEnable=true`: enable directory listing for folders that does not have `index.gmi`
-- `dirlistReverse=false`: reverse the order of which files are listed
-- `dirlistSort="name"`: how files are sorted, only "name", "size", and "time" are accepted. Defaults to "name" if an unknown option is encountered
-- `dirlistTitles=true`: if true, directory listing will use first top level header in `*.gmi` files instead of the filename
+* `dirlistEnable=true`: enable directory listing for folders that does not have `index.gmi`
+* `dirlistReverse=false`: reverse the order of which files are listed
+* `dirlistSort="name"`: how files are sorted, only "name", "size", and "time" are accepted. Defaults to "name" if an unknown option is encountered
+* `dirlistTitles=true`: if true, directory listing will use first top level header in `*.gmi` files instead of the filename
 
 **~user/ directories**
 
-- `userdirEnable=true`: enable serving `/~user/*` requests
-- `userdir="public_spartan"`: root directory for users. This should not have trailing slashes, and it is relative to `/home/user/`
+* `userdirEnable=true`: enable serving `/~user/*` requests
+* `userdir="public_spartan"`: root directory for users. This should not have trailing slashes, and it is relative to `/home/user/`
 
 **CGI**
 
-- `CGIPaths=["cgi/"]`: list of paths where world-executable files will be run as CGI processes. These paths would be checked if it prefix the requested path. For the default value, a request of `/cgi/hi.sh` (requesting to `./public/cgi/hi.sh`, for example) will run `hi.sh` script if it's world executable.
-- `usercgiEnable=false`: enable running user's CGI scripts too. This is dangerous as spsrv does not (yet) change the Uid of the CGI process, hence the process would be ran by the same user that is running the server, which could mean write access to configuration files, etc. Note that this option will be assumed `false` if `userdirEnable` is set to `false`. Which means if user directories are not enabled, there will be no per-user CGI.
+* `CGIPaths=["cgi/"]`: list of paths where world-executable files will be run as CGI processes. These paths would be checked if it prefix the requested path. For the default value, a request of `/cgi/hi.sh` (requesting to `./public/cgi/hi.sh`, for example) will run `hi.sh` script if it's world executable.
+* `usercgiEnable=false`: enable running user's CGI scripts too. This is dangerous as spsrv does not (yet) change the Uid of the CGI process, hence the process would be ran by the same user that is running the server, which could mean write access to configuration files, etc. Note that this option will be assumed `false` if `userdirEnable` is set to `false`. Which means if user directories are not enabled, there will be no per-user CGI.
 
 ## CLI
 
@@ -83,13 +90,34 @@ Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help ]
     -p, --port int          Port to listen to`)
 ```
 
-Note that you *cannot* set the hostname or the dir path to `,` because spsrv uses that to check whether
-you provided an option. You can't set port to `0` either, sorry, this limitation comes with the advantage
-of being able to override config values from the command line.
+Note that you *cannot* set the hostname or the dir path to `,` because spsrv uses that to check whether you provided an option. You can't set port to `0` either, sorry, this limitation comes with the advantage of being able to override config values from the command line.
 
 There are no arguments wanted when running spsrv, only options as listed above :)
 
+## CGI
+
+The following environment values are set for CGI scripts:
+
+```
+GATEWAY_INTERFACE # CGI/1.1
+REMOTE_ADDR      # Remote address
+SCRIPT_PATH      # (Relative) path of the CGI script
+SERVER_SOFTWARE  # SPSRV
+SERVER_PROTOCOL  # SPARTAN
+REQUEST_METHOD   # Set to nothing
+SERVER_PORT      # Port
+SERVER_NAME      # Hostname
+DATA_LENGTH      # Input data length
+```
+
+The data block, if any, will be piped as stdin to the CGI process.
+
+Keep in mind that CGI scripts (as of now) are run by the same user as the server process, hence it is generally dangerous for allowing users to have their own CGI scripts. See configuration section for more details.
+
+
 ## todo
+
+```
 - [x] /folder to /folder/ redirects
 - [x] directory listing
 - [ ] logging to files
@@ -107,3 +135,4 @@ There are no arguments wanted when running spsrv, only options as listed above :
   - [x] pipe data block
   - [ ] user cgi config and change uid to user
   - [ ] regex in cgi paths
+```
