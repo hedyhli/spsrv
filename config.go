@@ -19,7 +19,6 @@ type Config struct {
 	DirlistReverse   bool
 	DirlistSort      string
 	DirlistTitles    bool
-	RestrictHostname string
 	CGIPaths         []string
 	UserCGIEnable    bool
 }
@@ -34,7 +33,6 @@ var defaultConf = &Config{
 	DirlistTitles:    true,
 	UserDirEnable:    true,
 	UserDir:          "public_spartan",
-	RestrictHostname: "",
 	CGIPaths:         []string{"cgi/"},
 	UserCGIEnable:    false,  // Turned off by default because scripts are run by server user as of now
 }

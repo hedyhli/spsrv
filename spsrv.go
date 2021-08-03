@@ -131,9 +131,9 @@ func handleConnection(netConn net.Conn, conf *Config) {
 		sendResponseHeader(conn, statusClientError, "Bad request")
 		return
 	}
-	if conf.RestrictHostname != "" {
-		if conf.RestrictHostname != host {
-			log.Println("Request host does not match conf.RestrictHostname, returning client error.")
+	if conf.Hostname != "" {
+		if conf.Hostname != host {
+			log.Println("Request host does not match config value Hostname, returning client error.")
 			sendResponseHeader(conn, statusClientError, "No proxying to other hosts!")
 			return
 		}
@@ -169,7 +169,7 @@ func handleConnection(netConn net.Conn, conf *Config) {
 	// Check for CGI
 	for _, cgiPath := range conf.CGIPaths {
 		if strings.HasPrefix(req.filePath, cgiPath) {
-			if req.user != "" && !conf.UserCGIEnable {
+			if req.user != "" && (!conf.UserCGIEnable || !conf.UserDirEnable) {
 				break
 			}
 			log.Println("Attempting CGI:", req.filePath)
