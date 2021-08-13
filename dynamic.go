@@ -81,6 +81,10 @@ func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool) {
 	}
 	if err != nil {
 		log.Println("Error running CGI program " + path + ": " + err.Error())
+		if strings.Contains(err.Error(), "permission denied") {
+			ok = false
+			return
+		}
 		if err, ok := err.(*exec.ExitError); ok {
 			log.Println("↳ stderr output: " + string(err.Stderr))
 		}
