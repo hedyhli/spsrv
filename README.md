@@ -8,6 +8,21 @@ A static spartan server with many features:
 * CONF or TOML config file
 * CGI
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [install](#install)
+    - [with `go get`](#with-go-get)
+    - [or just build it yourself](#or-just-build-it-yourself)
+    - [otherwise...](#otherwise)
+- [configuration](#configuration)
+    - [config options](#config-options)
+- [CLI](#cli)
+- [CGI](#cgi)
+- [todo](#todo)
+
+<!-- markdown-toc end -->
+
 ## install
 
 you have two options for now:
