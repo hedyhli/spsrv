@@ -282,7 +282,7 @@ func serveFile(conn io.ReadWriteCloser, reqPath, path string, conf *Config) {
 						sendResponseHeader(conn, statusServerError, "Error generating directory listing")
 						return
 					}
-					path += ".gmi" // OOF, this is just to have the text/gemini meta later lol
+					path = strings.TrimSuffix(path, "index.gmi")
 					serveContent(conn, content, path)
 					return
 				}
@@ -316,7 +316,7 @@ func serveFile(conn io.ReadWriteCloser, reqPath, path string, conf *Config) {
 func serveContent(conn io.ReadWriteCloser, content []byte, path string) {
 	// MIME
 	meta := http.DetectContentType(content)
-	if strings.HasSuffix(path, ".gmi") {
+	if strings.HasSuffix(path, ".gmi") || strings.HasSuffix(path, "/") {
 		meta = "text/gemini; lang=en; charset=utf-8" // TODO: configure custom meta string
 	}
 
