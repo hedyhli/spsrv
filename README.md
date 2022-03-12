@@ -86,6 +86,7 @@ Here are the config options and their default values
 
 * `userdirEnable=true`: enable serving `/~user/*` requests
 * `userdir="public_spartan"`: root directory for users. This should not have trailing slashes, and it is relative to `/home/user/`
+* `userSubdomains=false`: User vhosts. Whether to allow `user.host.name/foo.txt` being the same as `host.name/~user/foo.txt` (When `hostname="host.name"`). **NOTE**: This only works when `hostname` option is set.
 
 **CGI**
 
@@ -143,11 +144,19 @@ Keep in mind that CGI scripts (as of now) are run by the same user as the server
   - [x] user homedir
   - [x] hostname, port
   - [x] public dir
-  - [ ] dirlist title
+  - [x] dirlist title
+  - [x] user vhost
   - [ ] userdir slug
   - [ ] redirects
 - [x] CGI
   - [x] pipe data block
   - [ ] user cgi config and change uid to user
   - [ ] regex in cgi paths
+- [ ] SCGI
+
+- [ ] Multiple servers with each of their own confs
+
+README:
+- [ ] Add example confs
+- [ ] Add example .service files
 ```

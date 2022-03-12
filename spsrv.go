@@ -21,6 +21,7 @@ import (
 type Request struct {
 	conn     io.ReadWriteCloser
 	netConn  *net.Conn
+	vhost    string
 	user     string
 	path     string // Requested path
 	filePath string // Actual file path that does not include the content dir name
@@ -155,11 +156,17 @@ func handleConnection(netConn net.Conn, conf *Config) {
 		sendResponseHeader(conn, statusClientError, "Bad request")
 		return
 	}
+	userSubdomainReq := false
 	if conf.Hostname != "" {
 		if conf.Hostname != host {
-			log.Println("Request host does not match config value Hostname, returning client error.")
-			sendResponseHeader(conn, statusClientError, "No proxying to other hosts!")
-			return
+			if conf.UserDirEnable && conf.UserSubdomains && strings.HasSuffix(host, conf.Hostname) {
+				userSubdomainReq = true
+			}
+			if !userSubdomainReq {
+				log.Println("Request host does not match config value Hostname, returning client error.")
+				sendResponseHeader(conn, statusClientError, "No proxying to other hosts!")
+				return
+			}
 		}
 	}
 	if strings.Contains(reqPath, "..") {
@@ -185,7 +192,13 @@ func handleConnection(netConn net.Conn, conf *Config) {
 			data += newData
 		}
 	}
-	req := &Request{path: reqPath, netConn: &netConn, conn: conn, data: data, dataLen: dataLen}
+
+	var vhost string
+	if userSubdomainReq {
+		// TODO: Handle extra dots like a.b.host.name?
+		vhost = strings.TrimSuffix(host, "."+conf.Hostname)
+	}
+	req := &Request{vhost: vhost, path: reqPath, netConn: &netConn, conn: conn, data: data, dataLen: dataLen}
 
 	// Time to fetch the files!
 	path := resolvePath(reqPath, conf, req)
@@ -219,25 +232,35 @@ func handleConnection(netConn net.Conn, conf *Config) {
 // resolvePath takes in teh request path and returns the cleaned filepath that needs to be fetched.
 // It also handles user directories paths /~user/ and /~user if user directories is enabled in the config.
 func resolvePath(reqPath string, conf *Config, req *Request) (path string) {
-	// Handle tildes
-	if conf.UserDirEnable && strings.HasPrefix(reqPath, "/~") {
+	var user string
+	// Handle user subdomains
+	if req.vhost != "" {
+		user = req.vhost
+		path = reqPath
+	} else if conf.UserDirEnable && strings.HasPrefix(reqPath, "/~") {
+		// Handle tildes
+		// Note that user.host.name/~user/ would treat it as a literal folder named /~user/
+		// (hence using `else if`)
 		bits := strings.Split(reqPath, "/")
-		username := bits[1][1:]
+		user = bits[1][1:]
 
-		// /~user to /~user/ is somehow able to be handled together with any other /folder to /foler/ redirects
+		// /~user to /~user/ is somehow able to be handled together with any other /folder to /folder/ redirects
 		// So I won't worry about that nor handle it specifically
 
-		req.filePath = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(reqPath, "/~"+username)), "/")
+		req.filePath = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(reqPath, "/~"+user)), "/")
+		path = req.filePath
+	}
 
-		new_prefix := filepath.Join("/home/", username, conf.UserDir)
-		req.user = username
-		path = filepath.Clean(strings.Replace(reqPath, bits[1], new_prefix, 1))
+	if user != "" {
+		path = filepath.Join("/home/", user, conf.UserDir, path)
+		req.user = user
 
 		if strings.HasSuffix(reqPath, "/") {
 			path = filepath.Join(path, "index.gmi")
 		}
 		return
 	}
+
 	path = reqPath
 	// TODO: [config] default index file for a directory is index.gmi
 	if strings.HasSuffix(reqPath, "/") || reqPath == "" {

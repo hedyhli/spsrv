@@ -15,6 +15,7 @@ type Config struct {
 	RootDir        string
 	UserDirEnable  bool
 	UserDir        string
+	UserSubdomains bool
 	DirlistEnable  bool
 	DirlistReverse bool
 	DirlistSort    string
@@ -33,6 +34,7 @@ var defaultConf = &Config{
 	DirlistTitles:  true,
 	UserDirEnable:  true,
 	UserDir:        "public_spartan",
+	UserSubdomains: false,
 	CGIPaths:       []string{"cgi/"},
 	UserCGIEnable:  false, // Turned off by default because scripts are run by server user as of now
 }
