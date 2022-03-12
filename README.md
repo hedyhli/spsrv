@@ -95,7 +95,7 @@ Here are the config options and their default values
 
 ## CLI
 
-You can override values in config file if you supply then from the command line:
+You can override values in config file if you supply them from the command line:
 
 ```
 Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help ]
@@ -103,7 +103,7 @@ Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help ]
     -c, --config string     Path to config file
     -d, --dir string        Root content directory
     -h, --hostname string   Hostname
-    -p, --port int          Port to listen to`)
+    -p, --port int          Port to listen to
 ```
 
 Note that you *cannot* set the hostname or the dir path to `,` because spsrv uses that to check whether you provided an option. You can't set port to `0` either, sorry, this limitation comes with the advantage of being able to override config values from the command line.
