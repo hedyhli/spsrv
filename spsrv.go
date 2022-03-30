@@ -252,6 +252,7 @@ func resolvePath(reqPath string, conf *Config, req *Request) (path string) {
 	}
 
 	if user != "" {
+		req.filePath = path
 		path = filepath.Join("/home/", user, conf.UserDir, path)
 		req.user = user
 
