@@ -26,10 +26,12 @@ func handleCGI(conf *Config, req *Request, cgiPath string) (ok bool) {
 
 	info, err := os.Stat(scriptPath)
 	if err != nil {
+		log.Println(err.Error())
 		ok = false
 		return
 	}
 	if !(info.Mode().Perm()&0555 == 0555) {
+		log.Println("File not executable")
 		ok = false
 		return
 	}
