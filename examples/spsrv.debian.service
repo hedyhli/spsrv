@@ -1,0 +1,15 @@
+[Unit]
+Description=spsrv
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=spartan
+Group=spartan
+ExecStart=/usr/local/bin/spsrv -c /etc/spsrv.conf
+
+[Install]
+WantedBy=multi-user.target
+

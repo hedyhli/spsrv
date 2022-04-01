@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+# Echos back whatever data you send it
+
+printf "2 application/octet-stream\r\n"
+cat /dev/stdin
