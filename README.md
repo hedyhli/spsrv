@@ -8,6 +8,11 @@ A static spartan server with many features:
 * CONF or TOML config file
 * CGI
 
+Known servers running spsrv:
+* [hedy.tilde.cafe:3333](https://portal.mozz.us/spartan/hedy.tilde.cafe:3333)
+* [tilde.team](https://portal.mozz.us/spartan/tilde.team)
+* [tilde.cafe](https://portal.mozz.us/spartan/tilde.cafe)
+
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 

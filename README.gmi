@@ -16,6 +16,11 @@ Table of Contents
 => #cgi CGI
 => #todo todo
 
+Known servers running spsrv
+=> spartan://hedy.tilde.cafe:3333
+=> spartan://tilde.team
+=> spartan://tilde.cafe
+
 
 ## install
 
