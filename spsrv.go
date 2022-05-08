@@ -209,7 +209,7 @@ func handleConnection(netConn net.Conn, conf *Config) {
 			if req.user != "" && (!conf.UserCGIEnable || !conf.UserDirEnable) {
 				break
 			}
-			if req.user != "" && req.filePath == "" {
+			if req.user != "" && (req.filePath == "" || req.filePath == "/") {
 				// TODO: Refactor - ATM `path` would contain the current CGI file wanted
 				// But for hitting /~user/, req.filePath is NOT index.gmi
 				req.filePath = "index.gmi"
