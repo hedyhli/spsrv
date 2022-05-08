@@ -20,6 +20,7 @@ Known servers running spsrv
 => spartan://hedy.tilde.cafe:3333
 => spartan://tilde.team
 => spartan://tilde.cafe
+=> spartan://earthlight.xyz:3000
 
 
 ## install
@@ -174,7 +175,7 @@ Check out some example CGI scripts in the examples/ directory.
 * [ ] Multiple servers with each of their own confs
 
 README:
-* [ ] Add example confs
-* [ ] Add example .service files
+* [x] Add example confs (added in examples/ directory)
+* [x] Add example .service files (added in examples/ directory)
 ```
-
+""

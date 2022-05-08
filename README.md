@@ -12,6 +12,7 @@ Known servers running spsrv:
 * [hedy.tilde.cafe:3333](https://portal.mozz.us/spartan/hedy.tilde.cafe:3333)
 * [tilde.team](https://portal.mozz.us/spartan/tilde.team)
 * [tilde.cafe](https://portal.mozz.us/spartan/tilde.cafe)
+* [earthlight.xyz:3000](https://portal.mozz.us/spartan/earthlight.xyz:3000)
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
@@ -182,5 +183,5 @@ Check out some example CGI scripts in the [examples/](examples/) directory.
 - [ ] Multiple servers with each of their own confs
 
 README:
-- [ ] Add example confs
-- [ ] Add example .service files
+- [x] Add example confs (added in [examples/](examples) directory)
+- [x] Add example .service files (added in [examples/](examples) directory)
