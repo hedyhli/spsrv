@@ -21,6 +21,7 @@ Known servers running spsrv
 => spartan://tilde.team
 => spartan://tilde.cafe
 => spartan://earthlight.xyz:3000
+=> spartan://jdcard.com:3300
 
 
 ## install
