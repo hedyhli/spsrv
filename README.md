@@ -13,21 +13,21 @@ Known servers running spsrv:
 * [tilde.team](https://portal.mozz.us/spartan/tilde.team)
 * [tilde.cafe](https://portal.mozz.us/spartan/tilde.cafe)
 * [earthlight.xyz:3000](https://portal.mozz.us/spartan/earthlight.xyz:3000)
+* [jdcard.com:3300](https://portal.mozz.us/spartan/jdcard.com:3300/)
 
-<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-**Table of Contents**
+<!-- vim-markdown-toc GFM -->
 
-- [install](#install)
-    - [with `go get`](#with-go-get)
-    - [or just build it yourself](#or-just-build-it-yourself)
-    - [otherwise...](#otherwise)
-- [configuration](#configuration)
-    - [config options](#config-options)
-- [CLI](#cli)
-- [CGI](#cgi)
-- [todo](#todo)
+* [install](#install)
+  * [Option 1: with `go get`](#option-1-with-go-get)
+  * [Option 2: just build it yourself](#option-2-just-build-it-yourself)
+  * [otherwise...](#otherwise)
+* [configuration](#configuration)
+  * [config options](#config-options)
+* [CLI](#cli)
+* [CGI](#cgi)
+* [todo](#todo)
 
-<!-- markdown-toc end -->
+<!-- vim-markdown-toc -->
 
 ## install
 
