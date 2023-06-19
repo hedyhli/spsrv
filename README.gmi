@@ -114,7 +114,7 @@ Check out some example configuraton in the examples/ directory.
 You can override values in config file if you supply them from the command line:
 
 ```
-Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help ]
+Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help | --version ]
 
     -c, --config string     Path to config file
     -d, --dir string        Root content directory
