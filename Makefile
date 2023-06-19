@@ -1,7 +1,7 @@
 .PHONY: help build clean build-all package release
 .DEFAULT_GOAL := help
 
-pkg_root = git.sr.ht/~hedy/spsrv
+pkg_root = .
 
 ### Calculate a few variables for use in building
 VERSION = $(shell git describe --tags --abbrev=0 --always)
@@ -17,6 +17,8 @@ ldflags = "-X 'main.appVersion=$(VERSION)' \
 ##@ Help
 help:  ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	@echo
+	@echo "Variable pkg_root is set to . by default. This should be the directory of spsrv source code."
 
 ##@ Utilities
 init: ## Install utils

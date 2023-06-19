@@ -22,8 +22,9 @@ Known servers running spsrv:
 <!-- vim-markdown-toc GFM -->
 
 * [install](#install)
-  * [Option 1: with `go install`](#option-1-with-go-install)
-  * [Option 2: just build it yourself](#option-2-just-build-it-yourself)
+  * [Option 1: prebuilt binaries](#option-1-prebuilt-binaries)
+  * [Option 2: with `go install`](#option-2-with-go-install)
+  * [Option 3: just build it yourself](#option-3-just-build-it-yourself)
   * [otherwise...](#otherwise)
 * [configuration](#configuration)
   * [config options](#config-options)
@@ -35,9 +36,17 @@ Known servers running spsrv:
 
 ## install
 
-you have two options for now:
+you have three options:
 
-### Option 1: with `go install`
+### Option 1: prebuilt binaries
+
+prebuilt binaries for darwin and linux architectures arm/amd-64 are provided
+since v0.5.4. Head over to the [tags page on
+git.sr.ht](https://git.sr.ht/~hedy/spsrv/refs), click on a desired tag and
+download the binary for your architecture.
+
+
+### Option 2: with `go install`
 
 first, you need to have go installed and have a folder `~/go` with `$GOPATH`
 pointing to it.
@@ -50,32 +59,38 @@ there will be a binary at `~/go/bin/` with the source code at `~/go/src/`
 
 feel free to move the binary somewhere else like `/usr/sbin/`
 
+note that it's recommended to pin any latest version `@v0.0.0` rather than the
+latest commit since it may not be stable.
 
-### Option 2: just build it yourself
+
+### Option 3: just build it yourself
 
 run `git clone https://git.sr.ht/~hedy/spsrv` from any directory and `cd spsrv`
 
 make sure you have go installed and working.
 
 ```
-git checkout v0.0.0  # optionally pin a specific tag
-go build
+git checkout v0.0.0  # recommended to pin a specific tag
+make build
 ```
 
-when it finishes, the binary will be in the current directory.
+when it finishes, the binary will be in `./bin`.
 
+if you don't have make, you can just `go build` (just that version and build
+information will not be available with `spsrv --version`).
 
 ### otherwise...
 
-If you don't have/want go installed, you can contact me, and if you're lucky, I
-have the same OS as you and you can use my compiled binary (lol). I'll
-eventually have automated uploads of binaries for various architectures for
-each release in the future.
+if you do not wish to install go or clone the repo, and your architecture is not
+supported in the prebuilt binaries, drop an email to my [public
+inbox](mailto:~hedy/inbox@lists.sr.ht) (or contact me privately) so I could
+perhaps compile a binary for your architecture.
 
 
 ## configuration
 
-The default config file location is `/etc/spsrv.conf` you can specify your own path by running spsrv like
+The default config file location is `/etc/spsrv.conf` you can specify your own
+path by running spsrv like
 
 ```
 spsrv -c /path/to/file.conf
