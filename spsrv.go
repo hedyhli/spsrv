@@ -52,13 +52,21 @@ var (
 	rootDir  = flag.StringP("dir", "d", cliDefaultChar, "Root content directory")
 	confPath = flag.StringP("config", "c", "/etc/spsrv.conf", "Path to config file")
 	helpFlag = flag.BoolP("help", "?", false, "Get CLI help")
+	versionFlag = flag.BoolP("version", "v", false, "View version and exit")
 )
+
+var (
+	appVersion = "unknown version"
+	buildTime = "date unknown"
+	appCommit = "unknown"
+)
+
 
 func main() {
 	// Custom usage function because we don't want the "pflag: help requested" message, and
 	// we don't want to show the default values.
 	flag.Usage = func() {
-		fmt.Println(`Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help ]
+		fmt.Println(`Usage: spsrv [ [ -c <path> -h <hostname> -p <port> -d <path> ] | --help | --version ]
 
     -c, --config string     Path to config file
     -d, --dir string        Root content directory
@@ -71,6 +79,13 @@ func main() {
 		flag.Usage()
 		return
 	}
+
+	if *versionFlag {
+		fmt.Printf("spsrv %s, commit %s, built %s", appVersion, appCommit, buildTime)
+		return
+	}
+
+
 	conf, err := LoadConfig(*confPath)
 	if err != nil {
 		fmt.Println("Error loading config")
