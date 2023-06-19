@@ -15,6 +15,10 @@ Known servers running spsrv:
 * [earthlight.xyz:3000](https://portal.mozz.us/spartan/earthlight.xyz:3000)
 * [jdcard.com:3300](https://portal.mozz.us/spartan/jdcard.com:3300/)
 
+---
+
+**Table of contents**
+
 <!-- vim-markdown-toc GFM -->
 
 * [install](#install)
