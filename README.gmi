@@ -28,12 +28,12 @@ Known servers running spsrv
 
 you have two options for now:
 
-### Option 1: with go get
+### Option 1: with go
 
 first, you need to have go installed and have a folder ~/go with $GOPATH pointing to it.
 
 ```
-go get git.sr.ht/~hedy/spsrv
+go install git.sr.ht/~hedy/spsrv@latest
 ```
 
 there will be a binary at ~/go/bin/ with the source code at ~/go/src/

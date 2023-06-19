@@ -22,7 +22,7 @@ Known servers running spsrv:
 <!-- vim-markdown-toc GFM -->
 
 * [install](#install)
-  * [Option 1: with `go get`](#option-1-with-go-get)
+  * [Option 1: with `go install`](#option-1-with-go-install)
   * [Option 2: just build it yourself](#option-2-just-build-it-yourself)
   * [otherwise...](#otherwise)
 * [configuration](#configuration)
@@ -37,13 +37,13 @@ Known servers running spsrv:
 
 you have two options for now:
 
-### Option 1: with `go get`
+### Option 1: with `go install`
 
 first, you need to have go installed and have a folder `~/go` with `$GOPATH`
 pointing to it.
 
 ```
-go get git.sr.ht/~hedy/spsrv
+go install git.sr.ht/~hedy/spsrv@latest
 ```
 
 there will be a binary at `~/go/bin/` with the source code at `~/go/src/`
