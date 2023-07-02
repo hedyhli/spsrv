@@ -15,6 +15,14 @@ Known servers running spsrv:
 * [earthlight.xyz:3000](https://portal.mozz.us/spartan/earthlight.xyz:3000)
 * [jdcard.com:3300](https://portal.mozz.us/spartan/jdcard.com:3300/)
 
+**Questions / Support**
+
+* [#spartan on Tilde.Chat IRC](https://tilde.chat/kiwi/#spartan) (please ping
+  hedy)
+* [Public inbox](mailto:~hedy/inbox@lists.sr.ht) (general mailing list on
+  lists.sr.ht)
+* Patches: { [~hedy/inbox at lists.sr.ht](https://lists.sr.ht/~hedy/inbox) }
+
 ---
 
 **Table of contents**
@@ -22,14 +30,15 @@ Known servers running spsrv:
 <!-- vim-markdown-toc GFM -->
 
 * [install](#install)
-  * [Option 1: prebuilt binaries](#option-1-prebuilt-binaries)
-  * [Option 2: with `go install`](#option-2-with-go-install)
-  * [Option 3: just build it yourself](#option-3-just-build-it-yourself)
-  * [otherwise...](#otherwise)
+    * [Option 1: prebuilt binaries](#option-1-prebuilt-binaries)
+    * [Option 2: with `go install`](#option-2-with-go-install)
+    * [Option 3: just build it yourself](#option-3-just-build-it-yourself)
+    * [otherwise...](#otherwise)
 * [configuration](#configuration)
-  * [config options](#config-options)
+    * [config options](#config-options)
 * [CLI](#cli)
 * [CGI](#cgi)
+* [Help / Issues / Feedback](#help--issues--feedback)
 * [todo](#todo)
 
 <!-- vim-markdown-toc -->
@@ -175,6 +184,20 @@ server process, hence it is generally dangerous for allowing users to have
 their own CGI scripts. See configuration section for more details.
 
 Check out some example CGI scripts in the [examples/](examples/) directory.
+
+Example systemd service configurations are also listed there. Feel free to
+contribute for other OSes :)
+
+
+## Help / Issues / Feedback
+
+Please either use the [#spartan channel on tilde.chat
+IRC](https://tilde.chat/kiwi/#spartan) or my [public
+inbox](https://lists.sr.ht/~hedy/inbox).
+
+Both are listed at the top of this document.
+
+**Patches** -> [public inbox](https://lists.sr.ht/~hedy/inbox)
 
 
 ## todo

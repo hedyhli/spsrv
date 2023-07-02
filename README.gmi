@@ -8,14 +8,6 @@ A static spartan server with many features:
 * CONF or TOML config file
 * CGI
 
-Table of Contents
-
-=> #install install
-=> #configuration configuation
-=> #cli CLI
-=> #cgi CGI
-=> #todo todo
-
 Known servers running spsrv
 
 => spartan://hedy.tilde.cafe:3333
@@ -23,6 +15,20 @@ Known servers running spsrv
 => spartan://tilde.cafe
 => spartan://earthlight.xyz:3000
 => spartan://jdcard.com:3300
+
+Questions / Support
+
+=> irc://irc.tilde.chat:6697/#spartan #spartan on Tilde.Chat (please ping hedy)
+=> mailto:~hedy/inbox@lists.sr.ht Public inbox on lists.sr.ht
+
+
+Table of Contents
+
+=> #install install
+=> #configuration configuation
+=> #cli CLI
+=> #cgi CGI
+=> #todo todo
 
 
 ## install
@@ -165,6 +171,15 @@ Keep in mind that CGI scripts (as of now) are run by the same user as the server
 Check out some example CGI scripts in the examples/ directory.
 
 => https://tildegit.org/hedy/spsrv/src/branch/main/examples/ examples/
+
+Example systemd service configurations are also listed there. Feel free to contribute for other OSes :)
+
+
+## Help / Issues / Feedback
+
+Please either use the #spartan channel on tilde.chat IRC or my public inbox.
+
+Both are listed at the top of this document.
 
 
 ## todo
