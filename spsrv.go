@@ -241,12 +241,12 @@ func handleConnection(netConn net.Conn, conf *Config) {
 
 	// Reaching here means it is a static file
 	if dataLen != 0 {
-		log.Printf("Got data block of length %v, returning client error.", dataLen)
-		sendResponseHeader(conn, statusClientError, "Unwanted input data block received")
-		return
+		log.Printf("Got data block of length %v for request where CGI not found.", dataLen)
+		// Not erroring out here because if file not found, return not found rather
+		// than 'Unexpected input'
 	}
 
-	serveFile(conn, reqPath, path, conf)
+	serveFile(conn, reqPath, path, conf, dataLen != 0)
 }
 
 // resolvePath takes in teh request path and returns the cleaned filepath that needs to be fetched.
@@ -293,7 +293,7 @@ func resolvePath(reqPath string, conf *Config, req *Request) (path string) {
 }
 
 // serveFile serves opens the requested path and returns the file content
-func serveFile(conn io.ReadWriteCloser, reqPath, path string, conf *Config) {
+func serveFile(conn io.ReadWriteCloser, reqPath, path string, conf *Config, hasData bool) {
 	// If the content directory is not specified as an absolute path, make it absolute.
 	// prefixDir := ""
 	// var rootDir http.Dir
@@ -312,7 +312,11 @@ func serveFile(conn io.ReadWriteCloser, reqPath, path string, conf *Config) {
 		// be opened without errors
 		// Directory listing
 		if conf.DirlistEnable && strings.HasSuffix(path, "index.gmi") {
-			// fullPath := filepath.Join(fmt.Sprint(rootDir), path)
+			if hasData {
+				log.Println("Returning client error due to unexpected data block")
+				sendResponseHeader(conn, statusClientError, "Unexpected input data block received")
+				return
+			}
 			fullPath := path
 			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 				// If and only if the path is index.gmi AND index.gmi does not exist
@@ -333,10 +337,19 @@ func serveFile(conn io.ReadWriteCloser, reqPath, path string, conf *Config) {
 			}
 		}
 		log.Println(err)
+		log.Println("Returning not found")
 		sendResponseHeader(conn, statusClientError, "Not found")
 		return
 	}
 	defer f.Close()
+
+	// Only show this if we are certain that the request was for a static file.
+	// Which does not include the 'Not found'.
+	if hasData {
+		log.Println("Returning client error due to unexpected data block")
+		sendResponseHeader(conn, statusClientError, "Unexpected input data block received")
+		return
+	}
 
 	// Read da file
 	content, err = ioutil.ReadAll(f)
