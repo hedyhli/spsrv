@@ -14,6 +14,7 @@ Known servers running spsrv:
 * [tilde.cafe](https://portal.mozz.us/spartan/tilde.cafe)
 * [earthlight.xyz:3000](https://portal.mozz.us/spartan/earthlight.xyz:3000)
 * [jdcard.com:3300](https://portal.mozz.us/spartan/jdcard.com:3300/)
+* [do.hedy.dev](https://portal.mozz.us/spartan/do.hedy.dev/)
 
 **Questions / Support**
 
